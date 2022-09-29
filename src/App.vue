@@ -64,11 +64,13 @@
 </template>
 
 <script setup>
-  /* Imports */
-  import { ref } from 'vue'
+  // Imports 
+  import { ref, onMounted } from 'vue'
   import { v4 as uuidv4 } from 'uuid'
+  import { collection, query, where, getDocs } from "firebase/firestore"
+  import { db } from '@/firebase'
 
-  /* Todos */
+  // Todos 
 
   const todos= ref([
     // {
@@ -83,7 +85,7 @@
     // },
   ])
 
-  /* Add Todo */
+  // Add Todo 
   const newTodoContent = ref('');
 
   const addTodo = () => {
@@ -97,18 +99,39 @@
     newTodoContent.value='';
   }
 
-  /* Delete todo */
+  // Get todos
+
+  onMounted(async () => {
+    const q = query(collection(db, "todos"));
+
+    let fbTodos = [];
+
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach((doc) => {
+      console.log(doc.id, " => ", doc.data());
+      const todo = {
+        id: doc.id,
+        content: doc.data().content,
+        done: doc.data().done
+      }
+
+      fbTodos.push(todo);
+    });
+    todos.value = fbTodos;
+  })
+
+  // Delete todo 
 
   const deleteTodo = id => {
     todos.value = todos.value.filter(todo => todo.id !== id);
   }
 
-  /* toggle done */
-const toggleDone = id => {
-  const index = todos.value.findIndex(todo => todo.id === id);
+  // toggle done 
+  const toggleDone = id => {
+    const index = todos.value.findIndex(todo => todo.id === id);
 
-  todos.value[index].done = !todos.value[index].done
-}
+    todos.value[index].done = !todos.value[index].done
+  }
 
 </script>
 
