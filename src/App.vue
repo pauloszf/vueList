@@ -66,12 +66,23 @@
 <script setup>
   // Imports 
   import { ref, onMounted } from 'vue'
-  import { collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc } from "firebase/firestore"
+  import { 
+    collection, 
+    addDoc, 
+    onSnapshot, 
+    deleteDoc, 
+    doc, 
+    updateDoc, 
+    query, 
+    orderBy 
+  } from "firebase/firestore"
   import { db } from '@/firebase'
 
   // Firebase refs
 
   const todosCollectionRef = collection(db, "todos");
+
+  const todosCollectionQuery = query(todosCollectionRef, orderBy("date", "desc"));
 
   // Todos 
 
@@ -94,7 +105,8 @@
   const addTodo = () => {
     addDoc(todosCollectionRef, {
       content: newTodoContent.value,
-      done: false
+      done: false,
+      date: Date.now()
     });
     newTodoContent.value='';
   }
@@ -102,7 +114,7 @@
   // Get todos
 
   onMounted(() => {
-    onSnapshot(todosCollectionRef, (querySnapshot) => {
+    onSnapshot(todosCollectionQuery, (querySnapshot) => {
       const fbTodos = [];
       querySnapshot.forEach((doc) => {
         const todo = {
