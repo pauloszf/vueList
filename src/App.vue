@@ -66,9 +66,12 @@
 <script setup>
   // Imports 
   import { ref, onMounted } from 'vue'
-  import { v4 as uuidv4 } from 'uuid'
-  import { collection, query, where, onSnapshot } from "firebase/firestore"
+  import { collection, addDoc, onSnapshot, deleteDoc, doc } from "firebase/firestore"
   import { db } from '@/firebase'
+
+  // Firebase refs
+
+  const todosCollectionRef = collection(db, "todos");
 
   // Todos 
 
@@ -89,20 +92,17 @@
   const newTodoContent = ref('');
 
   const addTodo = () => {
-    const newTodo = {
-      id: uuidv4(),
+    addDoc(todosCollectionRef, {
       content: newTodoContent.value,
       done: false
-    }
-    
-    todos.value.unshift(newTodo)
+    });
     newTodoContent.value='';
   }
 
   // Get todos
 
   onMounted(() => {
-    onSnapshot(collection(db, "todos"), (querySnapshot) => {
+    onSnapshot(todosCollectionRef, (querySnapshot) => {
       const fbTodos = [];
       querySnapshot.forEach((doc) => {
         const todo = {
@@ -120,7 +120,7 @@
   // Delete todo 
 
   const deleteTodo = id => {
-    todos.value = todos.value.filter(todo => todo.id !== id);
+    deleteDoc(doc(todosCollectionRef, id));
   }
 
   // toggle done 
